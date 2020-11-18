@@ -1,3 +1,10 @@
+/**
+ * @Author: ZhaoYadong
+ * @Date: 2020-11-18 10:53:59
+ * @LastEditors: ZhaoYadong
+ * @LastEditTime: 2020-11-18 10:56:26
+ * @FilePath: /src/wxpay/account.go
+ */
 package wxpay
 
 import (
@@ -11,6 +18,7 @@ type Account struct {
 	apiKey    string
 	certData  []byte
 	isSandbox bool
+	isPem     bool
 }
 
 // 创建微信支付账号
@@ -31,4 +39,9 @@ func (a *Account) SetCertData(certPath string) {
 		return
 	}
 	a.certData = certData
+}
+
+// 设置证书类型
+func (a *Account) SetIsPem() {
+	a.isPem = true
 }

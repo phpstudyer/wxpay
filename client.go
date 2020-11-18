@@ -82,7 +82,19 @@ func (c *Client) postWithCert(url string, params Params) (string, error) {
 	}
 
 	// 将pkcs12证书转成pem
-	cert := pkcs12ToPem(c.account.certData, c.account.mchID)
+	var (
+		cert tls.Certificate
+		err  error
+	)
+	if c.account.isPem {
+		cert, err = tls.X509KeyPair(c.account.certData, c.account.certData)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		cert = pkcs12ToPem(c.account.certData, c.account.mchID)
+
+	}
 
 	config := &tls.Config{
 		Certificates: []tls.Certificate{cert},
