@@ -87,10 +87,7 @@ func (c *Client) postWithCert(url string, params Params) (string, error) {
 		err  error
 	)
 	if c.account.isPem {
-		cert, err = tls.X509KeyPair(c.account.certData, c.account.certData)
-		if err != nil {
-			return "", err
-		}
+		cert = parsePem(c.account.certData, c.account.keyData, c.account.mchID)
 	} else {
 		cert = pkcs12ToPem(c.account.certData, c.account.mchID)
 

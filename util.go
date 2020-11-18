@@ -1,15 +1,24 @@
+/**
+ * @Author: ZhaoYadong
+ * @Date: 2020-11-18 10:53:59
+ * @LastEditors: ZhaoYadong
+ * @LastEditTime: 2020-11-18 11:35:28
+ * @FilePath: /src/wxpay/util.go
+ */
 package wxpay
 
 import (
 	"bytes"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/pem"
 	"encoding/xml"
-	"golang.org/x/crypto/pkcs12"
 	"log"
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/pkcs12"
 )
 
 func XmlToMap(xmlStr string) Params {
@@ -88,4 +97,45 @@ func pkcs12ToPem(p12 []byte, password string) tls.Certificate {
 		panic(err)
 	}
 	return cert
+}
+
+// 解析Pem
+func parsePem(certData, keyData []byte, password string) tls.Certificate {
+	// 从恐慌恢复
+	defer func() {
+		if x := recover(); x != nil {
+			log.Print(x)
+		}
+	}()
+	keyPEMBlock, rest := pem.Decode(keyData)
+	if len(rest) > 0 {
+		panic("Decode key failed!")
+	}
+
+	if x509.IsEncryptedPEMBlock(keyPEMBlock) {
+		keyDePEMByte, err := x509.DecryptPEMBlock(keyPEMBlock, []byte(password))
+		if err != nil {
+			panic(err)
+		}
+
+		// 解析出其中的RSA 私钥
+		key, err := x509.ParsePKCS1PrivateKey(keyDePEMByte)
+		if err != nil {
+			panic(err)
+		}
+		// 编码成新的PEM 结构
+		keyData = pem.EncodeToMemory(
+			&pem.Block{
+				Type:  "RSA PRIVATE KEY",
+				Bytes: x509.MarshalPKCS1PrivateKey(key),
+			},
+		)
+
+	}
+	cert, err := tls.X509KeyPair(certData, keyData)
+	if err != nil {
+		panic(err)
+	}
+	return cert
+
 }
