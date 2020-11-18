@@ -1,4 +1,4 @@
-module github.com/objcoding/wxpay
+module github.com/phpstudyer/wxpay
 
 go 1.14
 
